@@ -64,17 +64,36 @@ export class TransactionController {
     type: "entrada" | "saida";
     category_id: number;
     date: string;
+    is_recurring?: boolean;
+    recurrence_type?: "nenhuma" | "diaria" | "semanal" | "mensal" | "anual";
+    recurrence_until?: string | null;
   }) {
+    const isRecurring = data.is_recurring ? 1 : 0;
+    const recurrenceType = data.recurrence_type || "nenhuma";
+    const recurrenceUntil = data.recurrence_until || null;
+
     const stmt = this.db.prepare(
-      `INSERT INTO transactions (description, amount, type, category_id, date) 
-       VALUES (?, ?, ?, ?, ?)`
+      `INSERT INTO transactions (
+        description,
+        amount,
+        type,
+        category_id,
+        date,
+        is_recurring,
+        recurrence_type,
+        recurrence_until
+      ) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
     );
     const result = stmt.run(
       data.description,
       data.amount,
       data.type,
       data.category_id,
-      data.date
+      data.date,
+      isRecurring,
+      recurrenceType,
+      recurrenceUntil
     );
     return this.getById(Number(result.lastInsertRowid));
   }
@@ -88,6 +107,9 @@ export class TransactionController {
       type: "entrada" | "saida";
       category_id: number;
       date: string;
+      is_recurring: boolean;
+      recurrence_type: "nenhuma" | "diaria" | "semanal" | "mensal" | "anual";
+      recurrence_until: string | null;
     }>
   ) {
     const updates: string[] = [];
@@ -96,6 +118,18 @@ export class TransactionController {
     if (data.description !== undefined) {
       updates.push("description = ?");
       values.push(data.description);
+    }
+    if (data.is_recurring !== undefined) {
+      updates.push("is_recurring = ?");
+      values.push(data.is_recurring ? 1 : 0);
+    }
+    if (data.recurrence_type !== undefined) {
+      updates.push("recurrence_type = ?");
+      values.push(data.recurrence_type);
+    }
+    if (data.recurrence_until !== undefined) {
+      updates.push("recurrence_until = ?");
+      values.push(data.recurrence_until);
     }
     if (data.amount !== undefined) {
       updates.push("amount = ?");

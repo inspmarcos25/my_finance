@@ -16,6 +16,13 @@
   </script>
 </head>
 <body>
+  <button 
+    id="logoutBtnMobile"
+    class="btn-logout mobile-logout"
+    title="Sair"
+    aria-label="Sair"
+    data-logout
+  >🚪</button>
   <div class="container">
     <!-- Modal de Edição -->
     <div id="editModal" class="modal">
@@ -75,6 +82,37 @@
             >
           </div>
 
+          <div class="recurrence-card" data-recurrence-group="edit">
+            <div class="recurrence-header">
+              <div>
+                <p class="eyebrow">Recorrência</p>
+                <h4>Marcar como recorrente</h4>
+                <p class="muted">Sincronize a periodicidade sem sair do modo de edição.</p>
+              </div>
+              <span class="pill pill-soft">Recorrente</span>
+            </div>
+
+            <input type="hidden" name="recurrence_type" value="nenhuma" data-recurrence-input>
+
+            <div class="pill-group" data-recurrence-pills>
+              <button type="button" class="pill active" data-recurrence="nenhuma">Única</button>
+              <button type="button" class="pill" data-recurrence="semanal">Semanal</button>
+              <button type="button" class="pill" data-recurrence="mensal">Mensal</button>
+              <button type="button" class="pill" data-recurrence="anual">Anual</button>
+            </div>
+
+            <div class="recurrence-meta">
+              <label for="editRecurrenceUntil">Fim da recorrência (opcional)</label>
+              <input 
+                type="date" 
+                id="editRecurrenceUntil" 
+                name="recurrence_until" 
+                data-recurrence-until
+              >
+              <p class="hint">Se vazio, mantém a recorrência ativa.</p>
+            </div>
+          </div>
+
           <div class="form-actions">
             <button type="button" class="btn btn-secondary" onclick="closeEditModal()">
               ✕ Cancelar
@@ -91,7 +129,7 @@
         <h1>💰 Despesas</h1>
         <div class="user-info">
           <span id="userEmail"></span>
-          <button id="logoutBtn" class="btn-logout" title="Sair">🚪</button>
+          <button id="logoutBtn" class="btn-logout desktop-logout" title="Sair" data-logout>🚪</button>
         </div>
       </div>
       <nav class="sidebar-nav">
@@ -228,6 +266,37 @@
               name="date" 
               required
             >
+          </div>
+
+          <div class="recurrence-card" data-recurrence-group="create">
+            <div class="recurrence-header">
+              <div>
+                <p class="eyebrow">Recorrência</p>
+                <h4>Transforme em receita ou despesa recorrente</h4>
+                <p class="muted">Escolha a frequência e, se quiser, defina quando parar.</p>
+              </div>
+              <span class="pill pill-soft">Novo</span>
+            </div>
+
+            <input type="hidden" name="recurrence_type" value="nenhuma" data-recurrence-input>
+
+            <div class="pill-group" data-recurrence-pills>
+              <button type="button" class="pill active" data-recurrence="nenhuma">Única</button>
+              <button type="button" class="pill" data-recurrence="semanal">Semanal</button>
+              <button type="button" class="pill" data-recurrence="mensal">Mensal</button>
+              <button type="button" class="pill" data-recurrence="anual">Anual</button>
+            </div>
+
+            <div class="recurrence-meta">
+              <label for="transRecurrenceUntil">Fim da recorrência (opcional)</label>
+              <input 
+                type="date" 
+                id="transRecurrenceUntil" 
+                name="recurrence_until" 
+                data-recurrence-until
+              >
+              <p class="hint">Deixe vazio para continuar até você parar manualmente.</p>
+            </div>
           </div>
 
           <button type="submit" class="btn btn-primary">

@@ -33,6 +33,17 @@ export default (app: Elysia) =>
             type: t.Union([t.Literal("entrada"), t.Literal("saida")]),
             category_id: t.Number(),
             date: t.String(),
+            is_recurring: t.Optional(t.Boolean()),
+            recurrence_type: t.Optional(
+              t.Union([
+                t.Literal("nenhuma"),
+                t.Literal("diaria"),
+                t.Literal("semanal"),
+                t.Literal("mensal"),
+                t.Literal("anual"),
+              ])
+            ),
+            recurrence_until: t.Optional(t.Nullable(t.String())),
           }),
         }
       )
@@ -50,6 +61,15 @@ export default (app: Elysia) =>
               type: t.Union([t.Literal("entrada"), t.Literal("saida")]),
               category_id: t.Number(),
               date: t.String(),
+              is_recurring: t.Boolean(),
+              recurrence_type: t.Union([
+                t.Literal("nenhuma"),
+                t.Literal("diaria"),
+                t.Literal("semanal"),
+                t.Literal("mensal"),
+                t.Literal("anual"),
+              ]),
+              recurrence_until: t.Nullable(t.String()),
             })
           ),
         }

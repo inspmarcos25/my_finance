@@ -98,6 +98,14 @@ body {
   transform: scale(1.05);
 }
 
+.desktop-logout {
+  display: inline-flex;
+}
+
+.mobile-logout {
+  display: none;
+}
+
 .sidebar-nav {
   flex: 1;
   padding: 12px;
@@ -312,6 +320,117 @@ body {
   color: var(--gray-500);
 }
 
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--primary);
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.muted {
+  color: var(--gray-500);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.recurrence-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(59,130,246,0.05), rgba(16,185,129,0.06));
+  box-shadow: var(--shadow-sm);
+}
+
+.recurrence-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.recurrence-header h4 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--dark);
+}
+
+.pill-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.pill {
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--dark);
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+.pill:hover {
+  transform: translateY(-1px);
+  border-color: var(--primary);
+}
+
+.pill.active {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 8px 18px rgba(59,130,246,0.25);
+}
+
+.pill-soft {
+  background: rgba(59,130,246,0.12);
+  color: var(--primary);
+  border: 1px solid rgba(59,130,246,0.25);
+}
+
+.recurrence-meta {
+  background: rgba(255,255,255,0.9);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.recurrence-meta label {
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--gray-600);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.recurrence-meta input[type="date"] {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-family: inherit;
+}
+
+.recurrence-meta .hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
 /* Buttons */
 .btn {
   padding: 13px 22px;
@@ -427,6 +546,30 @@ body {
 .transaction-info p {
   font-size: 12px;
   color: var(--gray-500);
+}
+
+.transaction-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.tag {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--lighter);
+  color: var(--gray-600);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  border: 1px solid var(--border);
+}
+
+.tag.recurring {
+  background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(16,185,129,0.14));
+  color: var(--primary-dark);
+  border-color: rgba(59,130,246,0.35);
 }
 
 .transaction-right {
@@ -579,7 +722,7 @@ body {
     display: none;
   }
 
-  /* Mobile: tornar o logout flutuante e discreto no topo */
+  /* Mobile: botão de logout flutuante no topo direito */
   .user-info {
     background: transparent;
     padding: 0;
@@ -587,46 +730,33 @@ body {
     width: 100%;
   }
 
-  .user-info .btn-logout {
-    display: inline-flex;
-  }
-
   .user-info span {
     display: none;
   }
 
-  .btn-logout {
+  .user-info .desktop-logout {
+    display: none;
+  }
+
+  .mobile-logout {
+    display: inline-flex;
     position: fixed;
-    top: 10px;
-    right: 12px;
-    left: auto;
-    bottom: auto;
+    top: calc(env(safe-area-inset-top, 0px) + 10px);
+    right: calc(env(safe-area-inset-right, 0px) + 12px);
     z-index: 99999;
     background: var(--primary);
     color: #ffffff;
     box-shadow: 0 6px 18px rgba(0,0,0,0.18);
     padding: 10px 12px;
     border-radius: 12px;
-    display: inline-flex !important;
     align-items: center;
     justify-content: center;
     width: 42px;
     height: 42px;
-    visibility: visible;
     pointer-events: auto;
   }
 
-  #logoutBtn {
-    position: fixed !important;
-    top: 10px !important;
-    right: 12px !important;
-    left: auto !important;
-    bottom: auto !important;
-    margin: 0 !important;
-    z-index: 99999 !important;
-  }
-
-  .btn-logout:hover {
+  .mobile-logout:hover {
     background: var(--primary-dark);
     transform: scale(1.04);
   }

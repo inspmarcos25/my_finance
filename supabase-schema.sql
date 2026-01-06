@@ -17,6 +17,9 @@ CREATE TABLE IF NOT EXISTS transactions (
   type TEXT NOT NULL CHECK(type IN ('entrada', 'saida')),
   category_id BIGINT NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
   date DATE NOT NULL,
+  is_recurring BOOLEAN DEFAULT FALSE,
+  recurrence_type TEXT NOT NULL DEFAULT 'nenhuma' CHECK(recurrence_type IN ('nenhuma','diaria','semanal','mensal','anual')),
+  recurrence_until DATE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

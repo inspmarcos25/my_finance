@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   console.log('✅ Carregando app...');
   initEventListeners();
   setupLogoutButton();
+  initRecurrenceUI();
   setTodayDate();
   loadDashboard();
   loadCategories();
@@ -95,13 +96,73 @@ async function checkAuth() {
 
 // Configurar botão de logout
 function setupLogoutButton() {
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', async () => {
+  const logoutButtons = document.querySelectorAll('[data-logout]');
+  logoutButtons.forEach(btn => {
+    btn.addEventListener('click', async () => {
       await supabaseClient.auth.signOut();
       window.location.href = '/login.html';
     });
-  }
+  });
+}
+
+// Recurrence UI helpers
+function initRecurrenceUI() {
+  const groups = document.querySelectorAll('[data-recurrence-group]');
+  groups.forEach(group => {
+    const hiddenInput = group.querySelector('[data-recurrence-input]');
+    const pills = group.querySelectorAll('[data-recurrence-pills] [data-recurrence]');
+
+    pills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        pills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        if (hiddenInput) {
+          hiddenInput.value = pill.dataset.recurrence || 'nenhuma';
+        }
+      });
+    });
+  });
+}
+
+function getRecurrencePayload(groupName) {
+  const group = document.querySelector(`[data-recurrence-group="${groupName}"]`);
+  const recurrenceType = group?.querySelector('[data-recurrence-input]')?.value || 'nenhuma';
+  const recurrenceUntil = group?.querySelector('[data-recurrence-until]')?.value || null;
+
+  return {
+    is_recurring: recurrenceType !== 'nenhuma',
+    recurrence_type: recurrenceType,
+    recurrence_until: recurrenceUntil || null,
+  };
+}
+
+function setRecurrenceGroupValue(groupName, recurrenceType, recurrenceUntil) {
+  const group = document.querySelector(`[data-recurrence-group="${groupName}"]`);
+  if (!group) return;
+
+  const pills = group.querySelectorAll('[data-recurrence-pills] [data-recurrence]');
+  const hiddenInput = group.querySelector('[data-recurrence-input]');
+  const untilInput = group.querySelector('[data-recurrence-until]');
+
+  const normalizedType = recurrenceType || 'nenhuma';
+
+  pills.forEach(pill => {
+    pill.classList.toggle('active', pill.dataset.recurrence === normalizedType);
+  });
+
+  if (hiddenInput) hiddenInput.value = normalizedType;
+  if (untilInput) untilInput.value = recurrenceUntil ? recurrenceUntil.split('T')[0] : '';
+}
+
+function formatRecurrenceLabel(recurrenceType) {
+  const labels = {
+    diaria: 'Diária',
+    semanal: 'Semanal',
+    mensal: 'Mensal',
+    anual: 'Anual',
+    nenhuma: 'Única'
+  };
+  return labels[recurrenceType] || 'Recorrente';
 }
 
 // Event Listeners
@@ -311,6 +372,12 @@ function createTransactionItemHtml(trans) {
   const amount = trans.type === 'entrada' ? `+${formatCurrency(trans.amount)}` : `-${formatCurrency(trans.amount)}`;
   const amountClass = trans.type === 'entrada' ? 'income' : 'expense';
   const date = new Date(trans.date).toLocaleDateString('pt-BR');
+  const recurrenceTag = trans.is_recurring
+    ? `<div class="transaction-tags">
+        <span class="tag recurring">Recorrência ${formatRecurrenceLabel(trans.recurrence_type)}</span>
+        ${trans.recurrence_until ? `<span class="tag">Até ${new Date(trans.recurrence_until).toLocaleDateString('pt-BR')}</span>` : ''}
+      </div>`
+    : '';
 
   return `
     <div class="transaction-item" style="border-left-color: ${trans.category_icon ? 'var(--primary)' : '#ccc'}">
@@ -319,6 +386,7 @@ function createTransactionItemHtml(trans) {
         <div class="transaction-info">
           <h4>${trans.description}</h4>
           <p>${trans.category_name} • ${date}</p>
+          ${recurrenceTag}
         </div>
       </div>
       <div class="transaction-right">
@@ -346,6 +414,7 @@ async function handleAddTransaction(e) {
     type: formData.get('type'),
     category_id: parseInt(formData.get('category_id')),
     date: formData.get('date'),
+    ...getRecurrencePayload('create'),
   };
 
   try {
@@ -358,6 +427,7 @@ async function handleAddTransaction(e) {
       showToast('Transação adicionada com sucesso!', 'success');
       transactionForm.reset();
       setTodayDate();
+      setRecurrenceGroupValue('create', 'nenhuma', null);
       loadDashboard();
     } else {
       showToast('Erro ao adicionar transação', 'error');
@@ -408,6 +478,7 @@ function openEditModal(id) {
         document.getElementById('editType').value = transaction.type;
         document.getElementById('editCategory').value = transaction.category_id;
         document.getElementById('editDate').value = transaction.date;
+        setRecurrenceGroupValue('edit', transaction.recurrence_type, transaction.recurrence_until);
 
         // Abrir modal
         editModal.classList.add('active');
@@ -426,6 +497,7 @@ function closeEditModal() {
   editModal.classList.remove('active');
   editingTransactionId = null;
   editForm.reset();
+  setRecurrenceGroupValue('edit', 'nenhuma', null);
 }
 
 async function handleEditTransaction(e) {
@@ -440,6 +512,7 @@ async function handleEditTransaction(e) {
     type: formData.get('type'),
     category_id: parseInt(formData.get('category_id')),
     date: formData.get('date'),
+    ...getRecurrencePayload('edit'),
   };
 
   try {

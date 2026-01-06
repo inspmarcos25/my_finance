@@ -101,6 +101,9 @@ export class TransactionController {
     type: "entrada" | "saida";
     category_id: number;
     date: string;
+    is_recurring?: boolean;
+    recurrence_type?: "nenhuma" | "diaria" | "semanal" | "mensal" | "anual";
+    recurrence_until?: string | null;
     user_id: string;
   }) {
     const { data, error } = await this.supabase
@@ -126,6 +129,9 @@ export class TransactionController {
       type: "entrada" | "saida";
       category_id: number;
       date: string;
+      is_recurring: boolean;
+      recurrence_type: "nenhuma" | "diaria" | "semanal" | "mensal" | "anual";
+      recurrence_until: string | null;
     }>
   ) {
     const { error } = await this.supabase

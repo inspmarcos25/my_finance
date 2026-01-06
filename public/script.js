@@ -429,8 +429,16 @@ async function handleAddTransaction(e) {
       setTodayDate();
       setRecurrenceGroupValue('create', 'nenhuma', null);
       loadDashboard();
+        loadTransactions();
     } else {
-      showToast('Erro ao adicionar transação', 'error');
+        let details = '';
+        try {
+          details = await response.text();
+        } catch (e) {
+          details = '';
+        }
+        console.error('Erro ao adicionar transação:', response.status, details);
+        showToast(`Erro ao adicionar transação${details ? `: ${details}` : ''}`, 'error');
     }
   } catch (error) {
     console.error('Erro:', error);

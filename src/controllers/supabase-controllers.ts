@@ -106,18 +106,35 @@ export class TransactionController {
     recurrence_until?: string | null;
     user_id: string;
   }) {
-    const { data, error } = await this.supabase
-      .from("transactions")
-      .insert([transaction])
-      .select()
-      .single();
+    const basePayload = {
+      description: transaction.description,
+      amount: transaction.amount,
+      type: transaction.type,
+      category_id: transaction.category_id,
+      date: transaction.date,
+      user_id: transaction.user_id,
+      is_recurring: transaction.is_recurring ?? false,
+      recurrence_type: transaction.recurrence_type ?? "nenhuma",
+      recurrence_until: transaction.recurrence_until ?? null,
+    };
 
-    if (error) {
-      console.error("Erro ao criar transação:", error);
-      throw error;
+    const attemptInsert = async (payload: any) =>
+      this.supabase.from("transactions").insert([payload]).select().single();
+
+    let insertResult = await attemptInsert(basePayload);
+
+    if (insertResult.error && isRecurrenceColumnError(insertResult.error)) {
+      // Fallback para esquemas antigos sem colunas de recorrência
+      const { is_recurring, recurrence_type, recurrence_until, ...withoutRecurrence } = basePayload;
+      insertResult = await attemptInsert(withoutRecurrence);
     }
 
-    return this.getById(data.id);
+    if (insertResult.error) {
+      console.error("Erro ao criar transação:", insertResult.error);
+      throw insertResult.error;
+    }
+
+    return this.getById(insertResult.data.id);
   }
 
   // Atualizar transação
@@ -134,12 +151,17 @@ export class TransactionController {
       recurrence_until: string | null;
     }>
   ) {
-    const { error } = await this.supabase
-      .from("transactions")
-      .update(updates)
-      .eq("id", id);
+    const attemptUpdate = async (payload: any) =>
+      this.supabase.from("transactions").update(payload).eq("id", id);
 
-    if (error) throw error;
+    let updateResult = await attemptUpdate(updates);
+
+    if (updateResult.error && isRecurrenceColumnError(updateResult.error)) {
+      const { is_recurring, recurrence_type, recurrence_until, ...withoutRecurrence } = updates;
+      updateResult = await attemptUpdate(withoutRecurrence);
+    }
+
+    if (updateResult.error) throw updateResult.error;
 
     return this.getById(id);
   }
@@ -155,6 +177,11 @@ export class TransactionController {
 
     return { message: "Transação deletada com sucesso" };
   }
+}
+
+function isRecurrenceColumnError(error: any) {
+  const msg = (error?.message || "").toLowerCase();
+  return msg.includes("recurrence") || msg.includes("is_recurring");
 }
 
 export class CategoryController {

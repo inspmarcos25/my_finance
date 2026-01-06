@@ -1,6 +1,6 @@
-// Configurar Supabase
-const supabaseUrl = 'https://nlcvurffexmcsccbkeci.supabase.co';
-const supabaseKey = 'sb_publishable_cVzaS6mJnobNz8qKXBEZyw_mTP7f7AW';
+// Configurar Supabase (novo projeto "minhas finanças")
+const supabaseUrl = 'https://vksqxajbijdtokmrmndz.supabase.co';
+const supabaseKey = 'sb_publishable_oRwZvJIpMAxELQj99JqlPg_sTtOtdXk';
 
 // Criar cliente Supabase
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);

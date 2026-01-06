@@ -21,7 +21,7 @@ const app = new Elysia()
   // Health check
   .get("/api/health", () => ({ status: "ok", database: "supabase" }))
   
-  .listen(3000);
+  .listen(process.env.PORT || 3000);
 
-console.log(' Servidor rodando em http://localhost:3000');
+console.log(` Servidor rodando na porta ${process.env.PORT || 3000}`);
 console.log(' Usando Supabase como banco de dados com autenticação');

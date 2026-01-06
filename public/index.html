@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rastreador de Despesas</title>
+  <link rel="stylesheet" href="/style.css">
+  <script>
+    // Verificar autenticação ANTES de carregar a página
+    (function() {
+      const fromLogin = sessionStorage.getItem('from_login');
+      if (!fromLogin) {
+        window.location.replace('/login.html');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div class="container">
+    <!-- Modal de Edição -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>✏️ Editar Transação</h2>
+          <button class="modal-close" onclick="closeEditModal()">&times;</button>
+        </div>
+        <form id="editForm" class="form">
+          <div class="form-group">
+            <label for="editDescription">Descrição</label>
+            <input 
+              type="text" 
+              id="editDescription" 
+              name="description" 
+              required
+              placeholder="Ex: Almoço no restaurante"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="editAmount">Valor (R$)</label>
+            <input 
+              type="number" 
+              id="editAmount" 
+              name="amount" 
+              required 
+              step="0.01"
+              min="0"
+              placeholder="0,00"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="editType">Tipo</label>
+            <select id="editType" name="type" required>
+              <option value="">Selecione um tipo</option>
+              <option value="entrada">Entrada</option>
+              <option value="saida">Saída</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="editCategory">Categoria</label>
+            <select id="editCategory" name="category_id" required>
+              <option value="">Selecione uma categoria</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="editDate">Data</label>
+            <input 
+              type="date" 
+              id="editDate" 
+              name="date" 
+              required
+            >
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeEditModal()">
+              ✕ Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+              💾 Salvar Alterações
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>💰 Despesas</h1>
+        <div class="user-info">
+          <span id="userEmail"></span>
+          <button id="logoutBtn" class="btn-logout" title="Sair">🚪</button>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-view="dashboard" title="Dashboard">
+          📊<span>Dashboard</span>
+        </button>
+        <button class="nav-btn" data-view="transactions" title="Transações">
+          📋<span>Transações</span>
+        </button>
+        <button class="nav-btn" data-view="add-transaction" title="Nova Transação">
+          ➕<span>Nova</span>
+        </button>
+        <button class="nav-btn" data-view="categories" title="Categorias">
+          🏷️<span>Categorias</span>
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Dashboard View -->
+      <section class="view active" id="dashboard">
+        <h2>Dashboard</h2>
+        
+        <div class="balance-cards">
+          <div class="card balance-card total">
+            <div class="card-label">Saldo Total</div>
+            <div class="card-value" id="totalBalance">R$ 0,00</div>
+          </div>
+          <div class="card balance-card income">
+            <div class="card-label">Entradas</div>
+            <div class="card-value" id="totalIncome">R$ 0,00</div>
+          </div>
+          <div class="card balance-card expense">
+            <div class="card-label">Saídas</div>
+            <div class="card-value" id="totalExpense">R$ 0,00</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Gastos por Categoria</h3>
+          <div id="categoryChart" class="category-chart"></div>
+        </div>
+
+        <div class="card">
+          <h3>Últimas Transações</h3>
+          <div id="recentTransactions" class="transactions-list"></div>
+        </div>
+      </section>
+
+      <!-- Transactions View -->
+      <section class="view" id="transactions">
+        <h2>Transações</h2>
+        
+        <div class="filters">
+          <select id="filterType">
+            <option value="">Todos os tipos</option>
+            <option value="entrada">Entradas</option>
+            <option value="saida">Saídas</option>
+          </select>
+          <select id="filterCategory">
+            <option value="">Todas as categorias</option>
+          </select>
+        </div>
+
+        <div class="charts-grid">
+          <div class="card">
+            <h3>📊 Despesas por Categoria</h3>
+            <div class="chart-container">
+              <canvas id="categoryPieChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>📈 Entradas vs Saídas</h3>
+            <div class="chart-container">
+              <canvas id="incomeExpenseChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div id="transactionsList" class="transactions-list"></div>
+      </section>
+
+      <!-- Add Transaction View -->
+      <section class="view" id="add-transaction">
+        <h2>Nova Transação</h2>
+        
+        <form id="transactionForm" class="form">
+          <div class="form-group">
+            <label for="transDescription">Descrição</label>
+            <input 
+              type="text" 
+              id="transDescription" 
+              name="description" 
+              required
+              placeholder="Ex: Almoço no restaurante"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="transAmount">Valor (R$)</label>
+            <input 
+              type="number" 
+              id="transAmount" 
+              name="amount" 
+              required 
+              step="0.01"
+              min="0"
+              placeholder="0,00"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="transType">Tipo</label>
+            <select id="transType" name="type" required>
+              <option value="">Selecione um tipo</option>
+              <option value="entrada">Entrada</option>
+              <option value="saida">Saída</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="transCategory">Categoria</label>
+            <select id="transCategory" name="category_id" required>
+              <option value="">Selecione uma categoria</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="transDate">Data</label>
+            <input 
+              type="date" 
+              id="transDate" 
+              name="date" 
+              required
+            >
+          </div>
+
+          <button type="submit" class="btn btn-primary">
+            ➕ Adicionar Transação
+          </button>
+        </form>
+      </section>
+
+      <!-- Categories View -->
+      <section class="view" id="categories">
+        <h2>Categorias</h2>
+        
+        <form id="categoryForm" class="form">
+          <div class="form-group">
+            <label for="catName">Nome</label>
+            <input 
+              type="text" 
+              id="catName" 
+              name="name" 
+              required
+              placeholder="Ex: Diversão"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="catIcon">Ícone</label>
+            <input 
+              type="text" 
+              id="catIcon" 
+              name="icon" 
+              placeholder="Ex: 🎮"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="catColor">Cor</label>
+            <input 
+              type="color" 
+              id="catColor" 
+              name="color"
+            >
+          </div>
+
+          <button type="submit" class="btn btn-primary">
+            ➕ Adicionar Categoria
+          </button>
+        </form>
+
+        <div id="categoriesList" class="categories-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="/script.js?v=2"></script>
+</body>
+</html>

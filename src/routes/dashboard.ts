@@ -1,7 +1,11 @@
 import { Elysia } from "elysia";
 
-export default (app: Elysia) =>
-  app.group("/api/dashboard", (app) =>
+const enableSqliteRoutes = process.env.ENABLE_SQLITE_ROUTES === "true";
+
+export default (app: Elysia) => {
+  if (!enableSqliteRoutes) return app;
+
+  return app.group("/api/dashboard", (app) =>
     app.get("/", ({ db }) => {
       // Saldo total (entradas - saídas)
       const balance = db
@@ -63,3 +67,4 @@ export default (app: Elysia) =>
       };
     })
   );
+};

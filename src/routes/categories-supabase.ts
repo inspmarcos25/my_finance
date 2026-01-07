@@ -1,37 +1,40 @@
 import { Elysia, t } from "elysia";
 import { CategoryController } from "../controllers/supabase-controllers";
+import { supabase } from "../config/supabase";
 
-// Helper para extrair token e user_id
-function extractTokenAndUserId(headers: any) {
+// Helper para validar token via Supabase e extrair user_id de forma confiável
+async function validateAuth(headers: any) {
   const authHeader = headers.authorization || headers.Authorization;
-  let token = null;
-  let userId = null;
-  
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.replace('Bearer ', '');
-    try {
-      const decoded = JSON.parse(atob(token.split('.')[1]));
-      userId = decoded.sub;
-    } catch (e) {
-      console.error('Erro ao decodificar token:', e);
-    }
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return { token: null, userId: null };
   }
-  
-  return { token, userId };
+
+  const token = authHeader.replace("Bearer ", "");
+  try {
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || !data.user) {
+      console.error("Token inválido ou expirado:", error);
+      return { token: null, userId: null };
+    }
+    return { token, userId: data.user.id };
+  } catch (e) {
+    console.error("Erro ao validar token:", e);
+    return { token: null, userId: null };
+  }
 }
 
 export default (app: Elysia) =>
   app.group("/api/categories", (app) =>
     app
       .get("/", async ({ headers }: any) => {
-        const { token } = extractTokenAndUserId(headers);
+        const { token } = await validateAuth(headers);
         if (!token) return { error: "Não autenticado" };
         
         const controller = new CategoryController(token);
         return await controller.getAll();
       })
       .get("/:id", async ({ params: { id }, headers }: any) => {
-        const { token } = extractTokenAndUserId(headers);
+        const { token } = await validateAuth(headers);
         if (!token) return { error: "Não autenticado" };
         
         const controller = new CategoryController(token);
@@ -40,7 +43,7 @@ export default (app: Elysia) =>
       .post(
         "/",
         async ({ body, headers }: any) => {
-          const { token, userId } = extractTokenAndUserId(headers);
+          const { token, userId } = await validateAuth(headers);
           if (!token || !userId) return { error: "Não autenticado" };
           
           const controller = new CategoryController(token);
@@ -57,7 +60,7 @@ export default (app: Elysia) =>
       .put(
         "/:id",
         async ({ params: { id }, body, headers }: any) => {
-          const { token } = extractTokenAndUserId(headers);
+          const { token } = await validateAuth(headers);
           if (!token) return { error: "Não autenticado" };
           
           const controller = new CategoryController(token);
@@ -74,7 +77,7 @@ export default (app: Elysia) =>
         }
       )
       .delete("/:id", async ({ params: { id }, headers }: any) => {
-        const { token } = extractTokenAndUserId(headers);
+        const { token } = await validateAuth(headers);
         if (!token) return { error: "Não autenticado" };
         
         const controller = new CategoryController(token);

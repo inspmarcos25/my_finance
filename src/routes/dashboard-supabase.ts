@@ -1,22 +1,32 @@
 import { Elysia } from "elysia";
-import { createAuthenticatedClient } from "../config/supabase";
+import { createAuthenticatedClient, supabase } from "../config/supabase";
 
-// Helper para extrair token
-function extractToken(headers: any) {
+// Helper para validar token
+async function validateAuth(headers: any) {
   const authHeader = headers.authorization || headers.Authorization;
-  
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    return authHeader.replace('Bearer ', '');
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return null;
   }
-  
-  return null;
+
+  const token = authHeader.replace("Bearer ", "");
+  try {
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || !data.user) {
+      console.error("Token inválido ou expirado:", error);
+      return null;
+    }
+    return token;
+  } catch (e) {
+    console.error("Erro ao validar token:", e);
+    return null;
+  }
 }
 
 export default (app: Elysia) =>
   app.group("/api/dashboard", (app) =>
     app
       .get("/", async ({ headers }: any) => {
-      const token = extractToken(headers);
+      const token = await validateAuth(headers);
       if (!token) return { error: "Não autenticado" };
       
       const supabase = createAuthenticatedClient(token);

@@ -1,8 +1,12 @@
 import { Elysia, t } from "elysia";
 import { CategoryController } from "../controllers";
 
-export default (app: Elysia) =>
-  app.group("/api/categories", (app) =>
+const enableSqliteRoutes = process.env.ENABLE_SQLITE_ROUTES === "true";
+
+export default (app: Elysia) => {
+  if (!enableSqliteRoutes) return app;
+
+  return app.group("/api/categories", (app) =>
     app
       .get("/", ({ db }) => {
         const controller = new CategoryController(db);
@@ -47,3 +51,4 @@ export default (app: Elysia) =>
         return controller.delete(Number(id));
       })
   );
+};

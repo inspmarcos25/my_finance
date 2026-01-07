@@ -1,6 +1,6 @@
-// Configurar Supabase (novo projeto "minhas finanças")
-const supabaseUrl = 'https://vksqxajbijdtokmrmndz.supabase.co';
-const supabaseKey = 'sb_publishable_oRwZvJIpMAxELQj99JqlPg_sTtOtdXk';
+// Configurar Supabase (usar o mesmo projeto do backend)
+const supabaseUrl = 'https://nlcvurffexmcsccbkeci.supabase.co';
+const supabaseKey = 'sb_publishable_cVzaS6mJnobNz8qKXBEZyw_mTP7f7AW';
 
 // Criar cliente Supabase
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -45,6 +45,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // Tentar obter sessão
   const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+  // Garantir que o token pertence ao mesmo projeto supabase configurado
+  if (session?.access_token) {
+    const iss = getTokenIssuer(session.access_token);
+    const expected = supabaseUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    if (iss && !iss.includes(expected)) {
+      console.warn('Token de projeto diferente. Limpando sessão. Iss:', iss, 'Esperado contém:', expected);
+      await supabaseClient.auth.signOut();
+      sessionStorage.clear();
+      localStorage.clear();
+      window.location.replace('/login.html');
+      return;
+    }
+  }
   
   console.log('📝 Session:', session);
   console.log('📝 Error:', error);
@@ -76,6 +90,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadDashboard();
   loadCategories();
 });
+
+// Decodifica issuer do JWT (base64url)
+function getTokenIssuer(token) {
+  try {
+    const payload = token.split('.')[1];
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized + '='.repeat((4 - (normalized.length % 4 || 4)) % 4);
+    const decoded = JSON.parse(atob(padded));
+    return decoded.iss;
+  } catch (e) {
+    console.error('Erro ao decodificar issuer do token:', e);
+    return null;
+  }
+}
 
 // Verificar autenticação (função mantida para compatibilidade)
 async function checkAuth() {

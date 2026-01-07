@@ -1,7 +1,7 @@
 // Usar Supabase já carregado pelo CDN (mesma instância do app)
 const supabaseClient = window.supabase.createClient(
-    'https://vksqxajbijdtokmrmndz.supabase.co',
-    'sb_publishable_oRwZvJIpMAxELQj99JqlPg_sTtOtdXk'
+    'https://nlcvurffexmcsccbkeci.supabase.co',
+    'sb_publishable_cVzaS6mJnobNz8qKXBEZyw_mTP7f7AW'
 );
 
 let isLoginMode = true;

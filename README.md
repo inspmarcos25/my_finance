@@ -65,6 +65,13 @@ Teste Bun/
    http://localhost:3000
    \\\
 
+##  Verificações rápidas (saúde e tokens)
+
+- **Health check da API**: `curl http://localhost:3000/api/health` deve responder `{ "status": "ok", "database": "supabase" }`.
+- **Projeto Supabase correto**: confirme que `SUPABASE_URL` e `SUPABASE_ANON_KEY` no `.env` são do mesmo projeto mostrado em Settings → General (Project ID) e Settings → API Keys → Publishable key.
+- **Login emitindo token certo**: se trocar de projeto, faça logout, limpe `localStorage`/`sessionStorage`, hard reload e login novamente para gerar um novo JWT.
+- **Erro PGRST301**: ocorre quando o JWT é de outro projeto/chave. Revise `.env`, reinicie o servidor e refaça o login.
+
 ##  API Endpoints
 
 ### Transações

@@ -1,8 +1,12 @@
 import { Elysia, t } from "elysia";
 import { TransactionController } from "../controllers";
 
-export default (app: Elysia) =>
-  app.group("/api/transactions", (app) =>
+const enableSqliteRoutes = process.env.ENABLE_SQLITE_ROUTES === "true";
+
+export default (app: Elysia) => {
+  if (!enableSqliteRoutes) return app;
+
+  return app.group("/api/transactions", (app) =>
     app
       .get("/", ({ db }) => {
         const controller = new TransactionController(db);
@@ -79,3 +83,4 @@ export default (app: Elysia) =>
         return controller.delete(Number(id));
       })
   );
+};

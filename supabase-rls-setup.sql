@@ -8,10 +8,11 @@ ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 
 -- PASSO 3: Criar políticas de segurança para CATEGORIES
 
--- Política de SELECT: usuário vê apenas suas categorias
-CREATE POLICY "Users can view their own categories"
+-- Política de SELECT: todos veem categorias públicas (user_id IS NULL) e as próprias
+DROP POLICY IF EXISTS "Users can view their own categories" ON categories;
+CREATE POLICY "Users can view public and own categories"
 ON categories FOR SELECT
-USING (auth.uid() = user_id);
+USING (user_id IS NULL OR auth.uid() = user_id);
 
 -- Política de INSERT: usuário cria apenas suas categorias
 CREATE POLICY "Users can create their own categories"
@@ -27,6 +28,22 @@ USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete their own categories"
 ON categories FOR DELETE
 USING (auth.uid() = user_id);
+
+-- Compartilhar categorias padrão/publicar para todos
+-- a) Tornar existentes públicas
+UPDATE categories SET user_id = NULL WHERE user_id IS NOT NULL;
+
+-- b) (Re)inserir categorias padrão como públicas
+INSERT INTO categories (name, icon, color, user_id) VALUES
+	('Alimentação', '🍽️', '#f59e0b', NULL),
+	('Transporte', '🚗', '#ef4444', NULL),
+	('Saúde', '⚕️', '#10b981', NULL),
+	('Lazer', '🎬', '#8b5cf6', NULL),
+	('Trabalho', '💼', '#3b82f6', NULL),
+	('Educação', '📚', '#06b6d4', NULL),
+	('Moradia', '🏠', '#ec4899', NULL),
+	('Outros', '📌', '#6b7280', NULL)
+ON CONFLICT (name) DO UPDATE SET user_id = NULL;
 
 -- PASSO 4: Criar políticas de segurança para TRANSACTIONS
 
